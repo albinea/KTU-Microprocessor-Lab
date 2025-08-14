@@ -1,0 +1,64 @@
+READ MACRO A
+    MOV AH, 0Ah
+    LEA DX, A
+    INT 21h
+ENDM
+
+DISP MACRO B
+    MOV AH, 09h
+    LEA DX, B
+    INT 21h
+ENDM
+
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+MSG1 DB 0Ah, 0Dh, 'ENTER THE FIRST STRING:$'
+MSG2 DB 0Ah, 0Dh, 'ENTER THE SECOND STRING:$'
+MSG3 DB 0Ah, 0Dh, 'CONCATENATED STRING:$'
+STR1 DB 100 DUP('$')
+STR2 DB 100 DUP('$')
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+
+    DISP MSG1
+    READ STR1
+
+    DISP MSG2
+    READ STR2
+
+    MOV CL, STR2[1]
+    MOV SI, OFFSET STR1 + 2
+    MOV AL, STR1[1]
+    MOV BL, AL
+    MOV BH, 0
+    MOV CH, 0
+    ADD SI, BX
+
+    MOV DI, OFFSET STR2 + 2
+
+L1:
+    CMP CL, 0
+    JE L2
+    MOV AL, [DI]
+    MOV [SI], AL
+    INC SI
+    INC DI
+    DEC CL
+    JMP L1
+
+L2:
+    MOV BYTE PTR [SI], '$'
+
+    DISP MSG3
+    LEA DX, STR1 + 2
+    MOV AH, 09h
+    INT 21h
+
+    MOV AH, 4Ch
+    INT 21h
+END START
